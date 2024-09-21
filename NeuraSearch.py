@@ -33,6 +33,10 @@ st.subheader("Cosine Similarity Between Sentences")
 sentence1 = st.text_input("Enter Sentence 1", "I like walking to the park")
 sentence2 = st.text_input("Enter Sentence 2", "I like running to the office")
 
+def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
+    model = SentenceTransformer(model_name)
+    return model.encode(text)
+
 if st.button("Calculate Similarity"):
     def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
         model = SentenceTransformer(model_name)
@@ -96,9 +100,10 @@ if uploaded_file is not None:
     if query:
         # Vectorize the query
         query_embedding = embeddings.embed_query(query)
+        #query_embedding = get_huggingface_embeddings(query)
         
         # Query Pinecone
-        query_results = pinecone_index.query(query_embedding, top_k=5, namespace=namespace)
+        query_results = pinecone_index.query(vector=query_embedding, top_k=10, include_metadata=True, namespace=namespace)
 
         st.write("Top Matches:")
         contexts = []
