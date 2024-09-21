@@ -11,6 +11,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain.schema import Document
 import pinecone
+from pinecone import Pinecone, ServerlessSpec
 
 # Set up API keys
 openai_api_key = st.secrets["OPENAI_API_KEY"]
@@ -18,7 +19,21 @@ pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 groq_api_key = st.secrets["GROQ_API_KEY"]
 
 # Initialize Pinecone
-pinecone.init(api_key=pinecone_api_key)
+# Create a Pinecone instance
+pc = Pinecone(api_key=pinecone_api_key)
+
+# Check if the index exists, if not create it
+index_name = "ragpipe"
+if index_name not in [index.name for index in pc.list_indexes()]:
+    pc.create_index(
+        name=index_name,
+        dimension=384,  # Make sure this matches the embedding dimension
+        metric='cosine',
+        spec=ServerlessSpec(
+            cloud='aws',
+            region='us-west-2'  # Choose the region for your Pinecone setup
+        )
+    )
 
 # Sidebar for input
 st.sidebar.title("API Key Configuration")
@@ -96,7 +111,7 @@ query = st.text_input("Enter query for Pinecone")
 
 if query and st.button("Query Pinecone"):
     raw_query_embedding = get_huggingface_embeddings(query)
-    pincone_index = pinecone.Index(index_name)
+    pincone_index = pc.Index(index_name)
 
     top_matches = pincone_index.query(
         vector=raw_query_embedding.tolist(),
