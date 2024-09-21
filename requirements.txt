@@ -13,3 +13,4 @@ pillow_heif
 unstructured_inference
 sentence-transformers
 PyPDF2
+pinecone
