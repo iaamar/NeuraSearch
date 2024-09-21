@@ -97,22 +97,37 @@ if uploaded_file is not None:
     # Query Section
     query = st.text_input("Enter a query to search and generate an augmented response:")
 
-    if query:
-        # Vectorize the query
-        query_embedding = embeddings.embed_query(query)
-        #query_embedding = get_huggingface_embeddings(query)
-        
-        # Query Pinecone
-        query_results = pinecone_index.query(vector=query_embedding, top_k=10, include_metadata=True, namespace=namespace)
+    query = st.text_input("Enter query for Pinecone")
 
-        st.write("Top Matches:")
-        contexts = []
-        for match in query_results['matches']:
-            context_text = match['metadata']['content']
-            contexts.append(context_text)
-            st.write(f"Match ID: {match['id']}")
-            st.write(f"Similarity Score: {match['score']}")
-            st.write(f"Content: {context_text[:500]}...")
+    if query and st.button("Query Pinecone"):
+        raw_query_embedding = get_huggingface_embeddings(query)
+        pincone_index = pinecone.Index(index_name)
+
+        top_matches = pincone_index.query(
+            vector=raw_query_embedding.tolist(),
+            top_k=10,
+            include_metadata=True,
+            namespace=namespace
+        )
+
+        contexts = [items["metadata"]["text"] for items in top_matches["matches"]]
+        st.write(contexts)
+    # if query:
+    #     # Vectorize the query
+    #     query_embedding = embeddings.embed_query(query)
+    #     #query_embedding = get_huggingface_embeddings(query)
+        
+    #     # Query Pinecone
+    #     query_results = pinecone_index.query(vector=query_embedding, top_k=10, include_metadata=True, namespace=namespace)
+
+    #     st.write("Top Matches:")
+    #     contexts = []
+    #     for match in query_results['matches']:
+    #         context_text = match['metadata']['content']
+    #         contexts.append(context_text)
+    #         st.write(f"Match ID: {match['id']}")
+    #         st.write(f"Similarity Score: {match['score']}")
+    #         st.write(f"Content: {context_text[:500]}...")
 
         # Construct the augmented query
         augmented_query = "CONTEXT:\n" + "\n\n".join(contexts) + f"\n\nQUESTION: {query}"
