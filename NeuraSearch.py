@@ -1,7 +1,7 @@
 from langchain.document_loaders import PyPDFLoader
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from pincone import Pinecone
+from pinecone import Pinecone
 from groq import Groq
 import streamlit as st
 import pinecone
