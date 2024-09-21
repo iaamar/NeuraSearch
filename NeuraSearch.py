@@ -1,6 +1,7 @@
 from langchain.document_loaders import PyPDFLoader
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from pinecone import Pinecone
 from groq import Groq
 import streamlit as st
@@ -15,7 +16,10 @@ index_name = "ragvectorize-index"
 namespace = "sample-doc"
 
 # Initialize HuggingFace Embeddings
-embeddings = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+# Initialize HuggingFace Embeddings client
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
 st.title("Document Similarity with Pinecone and Langchain")
 st.write("This app allows you to process PDFs, calculate sentence similarity, and use Pinecone for document embeddings.")
 
@@ -48,8 +52,6 @@ if st.button("Calculate Similarity"):
 
     similarity = cosine_similarity_between_sentences(sentence1, sentence2)
     st.write(f"Cosine similarity between '{sentence1}' and '{sentence2}': {similarity:.4f}")
-
-# Initialize Groq client for text generationgroq_api_key = os.getenv('GROQ_API_KEY')
 
 # Streamlit UI
 st.title("PDF Vectorization, Retrieval, and Augmented Generation with RAG")
