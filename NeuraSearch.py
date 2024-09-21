@@ -1,48 +1,21 @@
-# streamlit_app.py
-import os
-import streamlit as st
-import numpy as np
 from langchain.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_pinecone import PineconeVectorStore
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from langchain.schema import Document
+from pincone import Pinecone
+from groq import Groq
+import streamlit as st
 import pinecone
-from pinecone import Pinecone, ServerlessSpec
-
-# Set up API keys
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-pinecone_api_key = st.secrets["PINECONE_API_KEY"]
-groq_api_key = st.secrets["GROQ_API_KEY"]
+import numpy as np
+import os
 
 # Initialize Pinecone
-# Create a Pinecone instance
-pc = Pinecone(api_key=pinecone_api_key)
+pc = Pinecone(os.getenv('PINECONE_API_KEY'))
+groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+index_name = "ragvectorize-index"
+namespace = "sample-doc"
 
-# Check if the index exists, if not create it
-index_name = "ragpipe"
-if index_name not in [index.name for index in pc.list_indexes()]:
-    pc.create_index(
-        name=index_name,
-        dimension=384,  # Make sure this matches the embedding dimension
-        metric='cosine',
-        spec=ServerlessSpec(
-            cloud='aws',
-            region='us-west-2'  # Choose the region for your Pinecone setup
-        )
-    )
-
-# Sidebar for input
-st.sidebar.title("API Key Configuration")
-st.sidebar.text_input("OpenAI API Key", type="password", value=openai_api_key)
-st.sidebar.text_input("Pinecone API Key", type="password", value=pinecone_api_key)
-
-# Initialize HuggingFace Embeddings client
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
+# Initialize HuggingFace Embeddings
+embeddings = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 st.title("Document Similarity with Pinecone and Langchain")
 st.write("This app allows you to process PDFs, calculate sentence similarity, and use Pinecone for document embeddings.")
 
@@ -76,61 +49,84 @@ if st.button("Calculate Similarity"):
     similarity = cosine_similarity_between_sentences(sentence1, sentence2)
     st.write(f"Cosine similarity between '{sentence1}' and '{sentence2}': {similarity:.4f}")
 
-# Directory processing
-st.subheader("Process PDF Directory")
-directory_path = st.text_input("Enter directory path for PDF files")
+# Initialize Groq client for text generationgroq_api_key = os.getenv('GROQ_API_KEY')
 
-def process_directory(directory_path):
-    data = []
-    for root, _, files in os.walk(directory_path):
-        for file in files:
-            file_path = os.path.join(root, file)
-            st.write(f"Processing file: {file_path}")
-            loader = PyPDFLoader(file_path)
-            data.append({"File": file_path, "Data": loader.load()})
-    return data
+# Streamlit UI
+st.title("PDF Vectorization, Retrieval, and Augmented Generation with RAG")
+st.write("Upload a PDF file to vectorize and store in Pinecone")
 
-if directory_path:
-    documents = process_directory(directory_path)
+# Upload PDF
+uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
-    st.write("Documents loaded:")
-    for document in documents:
-        st.write(document['File'])
+if uploaded_file is not None:
+    # Save the uploaded file temporarily
+    with open(uploaded_file, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    st.success("File uploaded successfully!")
+    
+    # Process the PDF
+    st.write("Processing the PDF and vectorizing it...")
+    loader = PyPDFLoader(uploaded_file)
+    document_data = loader.load()
 
-# Pinecone Index initialization
-st.subheader("Pinecone Setup")
-index_name = st.text_input("Enter Pinecone Index Name", "ragpipe")
-namespace = st.text_input("Enter Namespace", "company-documents")
-vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
+    # Prepare the text for embedding
+    for doc in document_data:
+        document_source = doc.metadata.get('source', 'unknown')
+        document_content = doc.page_content
+        st.write(f"Processing Document: {document_source}")
+        st.write(document_content)  # Show part of the document content
 
-# Query Pinecone
-query = st.text_input("Enter query")
-contexts = []
+        # Get embeddings
+        embedding = embeddings.encode([document_content])
+        
+        # Prepare the document data for Pinecone
+        doc_data = {"content": document_content, "embedding": embedding[0]}
+        
+        # Connect to Pinecone and store the document
+        pinecone_index = pinecone.Index(index_name)
+        pinecone_index.upsert([(f"{document_source}", embedding[0].tolist())], namespace=namespace)
+    
+    st.success("Document has been vectorized and stored in Pinecone!")
 
-# Define the function to get HuggingFace embeddings
-def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
-    model = SentenceTransformer(model_name)
-    return model.encode(text)
+    # Query Section
+    query = st.text_input("Enter a query to search and generate an augmented response:")
 
+    if query:
+        # Vectorize the query
+        query_embedding = embeddings.encode([query])
+        
+        # Query Pinecone
+        query_results = pinecone_index.query(query_embedding.tolist(), top_k=5, namespace=namespace)
 
-if query and st.button("Query Pinecone"):
-    raw_query_embedding = get_huggingface_embeddings(query)
-    pincone_index = pc.Index(index_name)
+        st.write("Top Matches:")
+        contexts = []
+        for match in query_results['matches']:
+            context_text = match['metadata']['content']
+            contexts.append(context_text)
+            st.write(f"Match ID: {match['id']}")
+            st.write(f"Similarity Score: {match['score']}")
+            st.write(f"Content: {context_text[:500]}...")
 
-    top_matches = pincone_index.query(
-        vector=raw_query_embedding.tolist(),
-        top_k=10,
-        include_metadata=True,
-        namespace=namespace
-    )
+        # Construct the augmented query
+        augmented_query = "CONTEXT:\n" + "\n\n".join(contexts) + f"\n\nQUESTION: {query}"
 
-    contexts = [items["metadata"]["text"] for items in top_matches["matches"]]
-    st.write(contexts)
+        st.write("Generated Augmented Query:")
+        st.write(augmented_query)
 
-# Display final augmented query and response
-st.subheader("Augmented Query & LLM Response")
-augmented_query = f"CONTEXT:\n\n{'\n-------\n'.join(contexts[:10])}\n\nQUESTION: {query}"
-st.write(augmented_query)
+        # Perform the augmented generation with Groq API
+        system_prompt = """You are an expert at understanding and analyzing company data - particularly shipping orders, purchase orders, invoices, and inventory reports. Answer any questions I have, based on the data provided. Always consider all of the context provided when forming a response."""
 
-# Mock response for now (replace with actual API call to Groq)
-st.write("LLM response : ")
+        # Make the API call to Groq for text completion
+        response = groq_client.chat.completions.create(
+        model="llama-3.1-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": augmented_query}
+            ],
+        )
+        response = response.choices[0].message.content
+
+        # Display the generated response
+        generated_response = response.choices[0].text
+        st.write("Generated Response:")
+        st.write(generated_response)

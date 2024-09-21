@@ -12,3 +12,4 @@ pdfminer.six==20221105
 pillow_heif
 unstructured_inference
 sentence-transformers
+PyPDF2
