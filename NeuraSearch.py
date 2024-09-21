@@ -1,10 +1,10 @@
+import streamlit as st
 from langchain.document_loaders import PyPDFLoader
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from pinecone import Pinecone
 from groq import Groq
-import streamlit as st
 import pinecone
 import numpy as np
 import os
@@ -16,8 +16,6 @@ index_name = "ragvectorize-index"
 namespace = "sample-doc"
 
 # Initialize HuggingFace Embeddings
-
-# Initialize HuggingFace Embeddings client
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 st.title("Document Similarity with Pinecone and Langchain")
@@ -67,9 +65,10 @@ if uploaded_file is not None:
         f.write(uploaded_file.getbuffer())
     
     st.success("File uploaded successfully!")
+    
     # Process the PDF
     st.write("Processing the PDF and vectorizing it...")
-    loader = PyPDFLoader(uploaded_file)
+    loader = PyPDFLoader(temp_file_path)
     document_data = loader.load()
 
     # Prepare the text for embedding
@@ -77,17 +76,17 @@ if uploaded_file is not None:
         document_source = doc.metadata.get('source', 'unknown')
         document_content = doc.page_content
         st.write(f"Processing Document: {document_source}")
-        st.write(document_content)  # Show part of the document content
+        st.write(document_content[:500])  # Show part of the document content
 
         # Get embeddings
-        embedding = embeddings.encode([document_content])
+        embedding = embeddings.embed_query(document_content)
         
         # Prepare the document data for Pinecone
-        doc_data = {"content": document_content, "embedding": embedding[0]}
+        doc_data = {"content": document_content, "embedding": embedding}
         
         # Connect to Pinecone and store the document
         pinecone_index = pinecone.Index(index_name)
-        pinecone_index.upsert([(f"{document_source}", embedding[0].tolist())], namespace=namespace)
+        pinecone_index.upsert([(f"{document_source}", embedding.tolist())], namespace=namespace)
     
     st.success("Document has been vectorized and stored in Pinecone!")
 
@@ -96,7 +95,7 @@ if uploaded_file is not None:
 
     if query:
         # Vectorize the query
-        query_embedding = embeddings.encode([query])
+        query_embedding = embeddings.embed_query(query)
         
         # Query Pinecone
         query_results = pinecone_index.query(query_embedding.tolist(), top_k=5, namespace=namespace)
@@ -121,7 +120,7 @@ if uploaded_file is not None:
 
         # Make the API call to Groq for text completion
         response = groq_client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
+            model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": augmented_query}
@@ -130,6 +129,5 @@ if uploaded_file is not None:
         response = response.choices[0].message.content
 
         # Display the generated response
-        generated_response = response.choices[0].text
         st.write("Generated Response:")
-        st.write(generated_response)
+        st.write(response)
