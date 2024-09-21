@@ -62,7 +62,7 @@ uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
 if uploaded_file is not None:
     # Save the uploaded file temporarily
-    with open(uploaded_file, "wb") as f:
+    with open("temp.pdf", "wb") as f:
         f.write(uploaded_file.getbuffer())
     st.success("File uploaded successfully!")
     
