@@ -97,8 +97,6 @@ if uploaded_file is not None:
     # Query Section
     query = st.text_input("Enter a query to search and generate an augmented response:")
 
-    query = st.text_input("Enter query for Pinecone")
-
     if query and st.button("Query Pinecone"):
         raw_query_embedding = get_huggingface_embeddings(query)
         pincone_index = pinecone.Index(index_name)
