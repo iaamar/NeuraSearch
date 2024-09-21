@@ -109,9 +109,8 @@ if uploaded_file is not None:
         )
 
         for items in top_matches["matches"]:
-            st.write(f"Match ID: {items['id']}")
-            st.write(f"Similarity Score: {items['score']}")
-            st.write(f"Content: {items['metadata']['content'][:500]}...")
+            st.write(f"Match ID: {items}")
+          
     # if query:
     #     # Vectorize the query
     #     query_embedding = embeddings.embed_query(query)
