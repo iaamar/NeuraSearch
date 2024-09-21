@@ -99,7 +99,7 @@ if uploaded_file is not None:
 
     if query and st.button("Query Pinecone"):
         raw_query_embedding = get_huggingface_embeddings(query)
-        pincone_index = pinecone.Index(index_name)
+        pincone_index = pc.Index(index_name)
 
         top_matches = pincone_index.query(
             vector=raw_query_embedding.tolist(),
