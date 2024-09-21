@@ -159,7 +159,6 @@ from langchain.document_loaders import PyPDFLoader
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain_pinecone import PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from google.colab import userdata
 from langchain.schema import Document
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
