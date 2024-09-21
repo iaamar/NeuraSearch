@@ -101,13 +101,10 @@ if directory_path:
 st.subheader("Pinecone Setup")
 index_name = st.text_input("Enter Pinecone Index Name", "ragpipe")
 namespace = st.text_input("Enter Namespace", "company-documents")
-
-if st.button("Initialize Pinecone Index"):
-    vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
-    st.write(f"Pinecone Index '{index_name}' initialized.")
+vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
 
 # Query Pinecone
-query = st.text_input("Enter query for Pinecone")
+query = st.text_input("Enter query")
 contexts = []
 if query and st.button("Query Pinecone"):
     raw_query_embedding = get_huggingface_embeddings(query)
@@ -125,8 +122,8 @@ if query and st.button("Query Pinecone"):
 
 # Display final augmented query and response
 st.subheader("Augmented Query & LLM Response")
-augmented_query = f"CONTEXT:\n\n{'\n-------\n'.join(contexts[:10])}\n\nMY QUESTION: {query}"
+augmented_query = f"CONTEXT:\n\n{'\n-------\n'.join(contexts[:10])}\n\nQUESTION: {query}"
 st.write(augmented_query)
 
 # Mock response for now (replace with actual API call to Groq)
-st.write("LLM response goes here")
+st.write("LLM response : ")
