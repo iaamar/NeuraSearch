@@ -106,6 +106,13 @@ vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
 # Query Pinecone
 query = st.text_input("Enter query")
 contexts = []
+
+# Define the function to get HuggingFace embeddings
+def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
+    model = SentenceTransformer(model_name)
+    return model.encode(text)
+
+
 if query and st.button("Query Pinecone"):
     raw_query_embedding = get_huggingface_embeddings(query)
     pincone_index = pc.Index(index_name)
