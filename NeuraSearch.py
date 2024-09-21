@@ -10,7 +10,7 @@ import numpy as np
 import os
 
 # Initialize Pinecone
-pc = Pinecone(os.getenv('PINECONE_API_KEY'))
+pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 index_name = "ragvectorize-index"
 namespace = "sample-doc"
@@ -86,8 +86,8 @@ if uploaded_file is not None:
         
         # Connect to Pinecone and store the document
         pinecone_index = pc.Index(index_name)
-        pinecone_index.upsert([(f"{document_source}", embedding.tolist())], namespace=namespace)
-    
+        pinecone_index.upsert([(f"{document_source}", embedding)], namespace=namespace)
+
     st.success("Document has been vectorized and stored in Pinecone!")
 
     # Query Section
@@ -98,7 +98,7 @@ if uploaded_file is not None:
         query_embedding = embeddings.embed_query(query)
         
         # Query Pinecone
-        query_results = pinecone_index.query(query_embedding.tolist(), top_k=5, namespace=namespace)
+        query_results = pinecone_index.query(query_embedding, top_k=5, namespace=namespace)
 
         st.write("Top Matches:")
         contexts = []
