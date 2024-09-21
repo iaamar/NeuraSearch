@@ -108,7 +108,7 @@ if uploaded_file is not None:
             namespace=namespace
         )
 
-        contexts = [items["metadata"]["text"] for items in top_matches["matches"]]
+        contexts = [items for items in top_matches["matches"]]
         st.write(contexts)
     # if query:
     #     # Vectorize the query
