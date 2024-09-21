@@ -108,7 +108,7 @@ if st.button("Initialize Pinecone Index"):
 
 # Query Pinecone
 query = st.text_input("Enter query for Pinecone")
-
+contexts = []
 if query and st.button("Query Pinecone"):
     raw_query_embedding = get_huggingface_embeddings(query)
     pincone_index = pc.Index(index_name)
