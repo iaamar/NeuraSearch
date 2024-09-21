@@ -85,7 +85,7 @@ if uploaded_file is not None:
         doc_data = {"content": document_content, "embedding": embedding}
         
         # Connect to Pinecone and store the document
-        pinecone_index = pinecone.Index(index_name)
+        pinecone_index = pc.Index(index_name)
         pinecone_index.upsert([(f"{document_source}", embedding.tolist())], namespace=namespace)
     
     st.success("Document has been vectorized and stored in Pinecone!")
