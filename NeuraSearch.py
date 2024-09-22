@@ -82,7 +82,7 @@ for document in document_data:
     
     # Check if 'source' exists in metadata
     if 'metadata' in document and 'source' in document['metadata']:
-        document_source = document['metadata']['source']
+        document_source = document['metadata'].source
     else:
         document_source = "Unknown source"
     
