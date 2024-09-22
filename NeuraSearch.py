@@ -244,8 +244,8 @@ vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
 # Prepare the text for embedding
 for document in document_data:
    print(document)
-   document_source = document['Data'][0].metadata['source']
-   document_content = document['Data'][0].page_content
+   document_source = document.metadata['source']
+   document_content = document.page_content
 
    file_name = document_source.split("/")[-1]
 
