@@ -63,31 +63,19 @@ if uploaded_file is not None:
     # Save the uploaded file temporarily
     temp_file_path = os.path.join("/tmp", uploaded_file.name)  # Save to a temp directory
     with open(temp_file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    
-    st.success("File uploaded successfully!")
-    
+        f.write(uploaded_file.getbuffer())    
     # Process the PDF
     st.write("Processing the PDF and vectorizing it...")
     loader = PyPDFLoader(temp_file_path)
     document_data = loader.load()
-    
-    st.success("Document has been vectorized and stored in Pinecone!")
 
 # Prepare the text for embedding and use a separate list for storing Documents
 document_objects = []
 
 for document in document_data:
-    # Print the document structure to inspect
-    st.write("Document Data:", document)
-    
     # Access metadata and page_content directly from the Document object
     document_source = document.metadata.get('source', 'Unknown source')
-    document_content = document.page_content if document.page_content else "No content available"
-
-    st.write(f"Processing Document: {document_source}")
-    st.write(document_content[:500])  # Show part of the document content
-     
+    document_content = document.page_content if document.page_content else "No content available"     
     # Create a Document object with the required format
     doc = Document(page_content=f"<Source>\n{document_source}\n</Source>\n\n<Content>\n{document_content}\n</Content>")
     document_objects.append(doc)
@@ -115,29 +103,37 @@ if query and st.button("Query Pinecone"):
         include_metadata=True,
         namespace=namespace
     )
+    st.write("Top Matches:", top_matches)
+
+    # Extract contexts from the matches and handle cases where metadata is missing
+    contexts = []
+    for items in top_matches["matches"]:
+        if "metadata" in items:
+            context_text = items["metadata"].get("content", "No content available")
+            contexts.append(context_text)
+        else:
+            st.write(f"Match ID {items['id']} does not have metadata.")
     
-    # Extract contexts from the matches
-    contexts = [items["metadata"].get("content", "No content available") for items in top_matches["matches"]]
-    st.write(contexts)
+    st.write("Contexts extracted:", contexts)
 
-    augmented_query = "«CONTEXT>|n" + "\n\n-------|n|n".join(contexts[:10]) + "\n-------|n</CONTEXT>\n\n\n\nMY QUESTION: " + query
+    if contexts:
+        augmented_query = "«CONTEXT>|n" + "\n\n-------|n|n".join(contexts[:10]) + "\n-------|n</CONTEXT>\n\nMY QUESTION: " + query
+        st.write("Generated Augmented Query:")
+        st.write(augmented_query)
 
-    st.write("Generated Augmented Query:")
-    st.write(augmented_query)
+        # Perform the augmented generation with Groq API
+        system_prompt = """You are an expert at understanding and analyzing company data - particularly shipping orders, purchase orders, invoices, and inventory reports. Answer any questions I have, based on the data provided. Always consider all of the context provided when forming a response."""
 
-    # Perform the augmented generation with Groq API
-    system_prompt = """You are an expert at understanding and analyzing company data - particularly shipping orders, purchase orders, invoices, and inventory reports. Answer any questions I have, based on the data provided. Always consider all of the context provided when forming a response."""
+        # Make the API call to Groq for text completion
+        response = groq_client.chat.completions.create(
+            model="llama-3.1-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": augmented_query}
+            ],
+        )
+        response = response.choices[0].message.content
 
-    # Make the API call to Groq for text completion
-    response = groq_client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": augmented_query}
-        ],
-    )
-    response = response.choices[0].message.content
-
-    # Display the generated response
-    st.write("Generated Response:")
-    st.write(response)
+        # Display the generated response
+        st.write("Generated Response:")
+        st.write(response)
