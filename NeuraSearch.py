@@ -263,7 +263,6 @@ vectorstore_from_documents = PineconeVectorStore.from_documents(
     index_name = index_name,
     namespace = namespace
 )
-pc = Pinecone(api_key = userdata.get("PINECONE_API_KEY") )
 pincone_index = pc.Index(index_name)
 
 query = st.text_input("Enter a query to search and generate an augmented response:")
