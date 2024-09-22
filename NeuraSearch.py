@@ -56,7 +56,7 @@ def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniL
 st.title("Neura Search")
 # st.write("Upload a PDF file to vectorize and store in Pinecone")
 # Upload PDF
-uploaded_file = st.file_uploader(type="pdf")
+uploaded_file = st.file_uploader("", type="pdf")
 document_data = []
 
 if uploaded_file is not None:
