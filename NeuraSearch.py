@@ -240,22 +240,30 @@ if uploaded_file is not None:
 
 vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
 
-
 # Prepare the text for embedding
 for document in document_data:
-   print(document)
-   document_source = document.metadata['source']
-   document_content = document.page_content
+    # Print the document structure to inspect
+    st.write("Document Data:", document)
+    
+    # Check if 'source' exists in metadata
+    if 'metadata' in document and 'source' in document['metadata']:
+        document_source = document['metadata']['source']
+    else:
+        document_source = "Unknown source"
+    
+    # Check if 'page_content' exists
+    document_content = document.get('page_content', 'No content available')
 
-   file_name = document_source.split("/")[-1]
-
-   doc = Document(
+    st.write(f"Processing Document: {document_source}")
+    st.write(document_content[:500])  # Show part of the document content
+     
+    doc = Document(
        page_content = f"<Source>\n{document_source}\n</Source>\n\n<Content>\n{document_content}\n</Content>",
        metadata = {
            "file_name": file_name
        }
    )
-   document_data.append(doc)
+    document_data.append(doc)
 
 vectorstore_from_documents = PineconeVectorStore.from_documents(
     document_data,
