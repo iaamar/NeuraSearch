@@ -91,7 +91,7 @@ vectorstore_from_documents = PineconeVectorStore.from_documents(
 # Initialize the Pinecone index
 pincone_index = pc.Index(index_name)
 
-query = st.text_input("Enter a query to search and generate an augmented response:")
+query = st.text_input("Enter a query to search:")
 
 if query and st.button("Search"):
 
