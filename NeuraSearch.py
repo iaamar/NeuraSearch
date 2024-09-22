@@ -235,7 +235,7 @@ if uploaded_file is not None:
     loader = PyPDFLoader(temp_file_path)
     document_data = loader.load()
     
-st.success("Document has been vectorized and stored in Pinecone!")
+    st.success("Document has been vectorized and stored in Pinecone!")
 
 
 vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
