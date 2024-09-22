@@ -64,8 +64,6 @@ if uploaded_file is not None:
     temp_file_path = os.path.join("/tmp", uploaded_file.name)  # Save to a temp directory
     with open(temp_file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())    
-    # Process the PDF
-    st.write("Processing ...")
     loader = PyPDFLoader(temp_file_path)
     document_data = loader.load()
 
