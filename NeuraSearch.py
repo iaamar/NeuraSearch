@@ -19,38 +19,38 @@ groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 index_name = "ragvectorize-index"
 namespace = "sample-doc"
 
-st.title("Document Similarity with Pinecone and Langchain")
-st.write("This app allows you to process PDFs, calculate sentence similarity, and use Pinecone for document embeddings.")
+# st.title("Document Similarity with Pinecone and Langchain")
+# st.write("This app allows you to process PDFs, calculate sentence similarity, and use Pinecone for document embeddings.")
 
-# Text input from the user
-text_input = st.text_area("Enter text for embedding:")
+# # Text input from the user
+# text_input = st.text_area("Enter text for embedding:")
 
-if text_input:
-    query_result = embeddings.embed_query(text_input)
-    st.write(f"Embedding result length: {len(query_result)}")
+# if text_input:
+#     query_result = embeddings.embed_query(text_input)
+#     st.write(f"Embedding result length: {len(query_result)}")
 
-# Cosine similarity calculation
-st.subheader("Cosine Similarity Between Sentences")
-sentence1 = st.text_input("Enter Sentence 1", "I like walking to the park")
-sentence2 = st.text_input("Enter Sentence 2", "I like running to the office")
+# # Cosine similarity calculation
+# st.subheader("Cosine Similarity Between Sentences")
+# sentence1 = st.text_input("Enter Sentence 1", "I like walking to the park")
+# sentence2 = st.text_input("Enter Sentence 2", "I like running to the office")
 
-def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
-    model = SentenceTransformer(model_name)
-    return model.encode(text)
+# def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
+#     model = SentenceTransformer(model_name)
+#     return model.encode(text)
 
-def cosine_similarity_between_sentences(sentence1, sentence2):
-    embedding1 = np.array(get_huggingface_embeddings(sentence1))
-    embedding2 = np.array(get_huggingface_embeddings(sentence2))
+# def cosine_similarity_between_sentences(sentence1, sentence2):
+#     embedding1 = np.array(get_huggingface_embeddings(sentence1))
+#     embedding2 = np.array(get_huggingface_embeddings(sentence2))
 
-    embedding1 = embedding1.reshape(1, -1)
-    embedding2 = embedding2.reshape(1, -1)
+#     embedding1 = embedding1.reshape(1, -1)
+#     embedding2 = embedding2.reshape(1, -1)
 
-    similarity = cosine_similarity(embedding1, embedding2)
-    return similarity[0][0]
+#     similarity = cosine_similarity(embedding1, embedding2)
+#     return similarity[0][0]
 
-if st.button("Calculate Similarity"):
-    similarity = cosine_similarity_between_sentences(sentence1, sentence2)
-    st.write(f"Cosine similarity between '{sentence1}' and '{sentence2}': {similarity:.4f}")
+# if st.button("Calculate Similarity"):
+#     similarity = cosine_similarity_between_sentences(sentence1, sentence2)
+#     st.write(f"Cosine similarity between '{sentence1}' and '{sentence2}': {similarity:.4f}")
 
 # Streamlit UI
 st.title("PDF Vectorization, Retrieval, and Augmented Generation with RAG")
@@ -128,5 +128,4 @@ if query and st.button("Query Pinecone"):
         response = response.choices[0].message.content
 
         # Display the generated response
-        st.write("Generated Response:")
         st.write(response)
