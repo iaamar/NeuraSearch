@@ -12,6 +12,7 @@ import pinecone
 import numpy as np
 import os
 
+# Initialize embedding model, Pinecone and Groq
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
@@ -32,6 +33,7 @@ if text_input:
 st.subheader("Cosine Similarity Between Sentences")
 sentence1 = st.text_input("Enter Sentence 1", "I like walking to the park")
 sentence2 = st.text_input("Enter Sentence 2", "I like running to the office")
+
 def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
     model = SentenceTransformer(model_name)
     return model.encode(text)
@@ -72,35 +74,35 @@ if uploaded_file is not None:
     
     st.success("Document has been vectorized and stored in Pinecone!")
 
+# Prepare the text for embedding and use a separate list for storing Documents
+document_objects = []
 
-vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
-
-# Prepare the text for embedding
 for document in document_data:
     # Print the document structure to inspect
     st.write("Document Data:", document)
     
-    # Check if 'source' exists in metadata
-    if document['metadata']:
-        document_source = document['metadata']['source']
-    else:
-        document_source = "Unknown source"
+    # Check if 'metadata' exists and extract 'source'
+    document_source = document.get('metadata', {}).get('source', 'Unknown source')
     
-    # Check if 'page_content' exists
-    document_content = document['page_content'] if 'page_content' in document else "No content"
+    # Check if 'page_content' exists and extract it
+    document_content = document.get('page_content', 'No content available')
 
     st.write(f"Processing Document: {document_source}")
     st.write(document_content[:500])  # Show part of the document content
      
-    doc = Document(page_content = f"<Source>\n{document_source}\n</Source>\n\n<Content>\n{document_content}\n</Content>")
-    document_data.append(doc)
+    # Create a Document object
+    doc = Document(page_content=f"<Source>\n{document_source}\n</Source>\n\n<Content>\n{document_content}\n</Content>")
+    document_objects.append(doc)
 
+# Create a PineconeVectorStore from the document objects
 vectorstore_from_documents = PineconeVectorStore.from_documents(
-    document_data,
+    document_objects,
     embeddings,
-    index_name = index_name,
-    namespace = namespace
+    index_name=index_name,
+    namespace=namespace
 )
+
+# Initialize the Pinecone index
 pincone_index = pc.Index(index_name)
 
 query = st.text_input("Enter a query to search and generate an augmented response:")
@@ -115,15 +117,12 @@ if query and st.button("Query Pinecone"):
         include_metadata=True,
         namespace=namespace
     )
-    contexts = [items["metadata"]["text"] for items in top_matches["matches"]]
+    
+    # Extract contexts from the matches
+    contexts = [items["metadata"].get("content", "No content available") for items in top_matches["matches"]]
     st.write(contexts)
 
-
-    augmented_query = "«CONTEXT>|n" + "\n\n-------|n|n".join(contexts[ : 10]) + "\n-------|n</CONTEXT>\n\n\n\nMY QUESTION: " + query
-
-    print(augmented_query)
-
-    augmented_query = "CONTEXT:\n" + "\n\n".join(contexts) + f"\n\nQUESTION: {query}"
+    augmented_query = "«CONTEXT>|n" + "\n\n-------|n|n".join(contexts[:10]) + "\n-------|n</CONTEXT>\n\n\n\nMY QUESTION: " + query
 
     st.write("Generated Augmented Query:")
     st.write(augmented_query)
