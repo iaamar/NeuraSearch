@@ -252,7 +252,7 @@ for document in document_data:
         document_source = "Unknown source"
     
     # Check if 'page_content' exists
-    document_content = document.get('page_content', 'No content available')
+    document_content = document['page_content'] if 'page_content' in document else "No content"
 
     st.write(f"Processing Document: {document_source}")
     st.write(document_content[:500])  # Show part of the document content
