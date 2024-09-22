@@ -81,8 +81,8 @@ for document in document_data:
     st.write("Document Data:", document)
     
     # Check if 'source' exists in metadata
-    if 'metadata' in document and 'source' in document['metadata']:
-        document_source = document['metadata'].source
+    if document['metadata']:
+        document_source = document['metadata']['source']
     else:
         document_source = "Unknown source"
     
