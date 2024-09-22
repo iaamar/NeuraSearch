@@ -81,16 +81,14 @@ for document in document_data:
     # Print the document structure to inspect
     st.write("Document Data:", document)
     
-    # Check if 'metadata' exists and extract 'source'
-    document_source = document.get('metadata', {}).get('source', 'Unknown source')
-    
-    # Check if 'page_content' exists and extract it
-    document_content = document.get('page_content', 'No content available')
+    # Access metadata and page_content directly from the Document object
+    document_source = document.metadata.get('source', 'Unknown source')
+    document_content = document.page_content if document.page_content else "No content available"
 
     st.write(f"Processing Document: {document_source}")
     st.write(document_content[:500])  # Show part of the document content
      
-    # Create a Document object
+    # Create a Document object with the required format
     doc = Document(page_content=f"<Source>\n{document_source}\n</Source>\n\n<Content>\n{document_content}\n</Content>")
     document_objects.append(doc)
 
