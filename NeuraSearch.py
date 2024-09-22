@@ -34,9 +34,9 @@ namespace = "sample-doc"
 # sentence1 = st.text_input("Enter Sentence 1", "I like walking to the park")
 # sentence2 = st.text_input("Enter Sentence 2", "I like running to the office")
 
-# def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
-#     model = SentenceTransformer(model_name)
-#     return model.encode(text)
+def get_huggingface_embeddings(text, model_name="sentence-transformers/all-MiniLM-L6-v2"):
+    model = SentenceTransformer(model_name)
+    return model.encode(text)
 
 # def cosine_similarity_between_sentences(sentence1, sentence2):
 #     embedding1 = np.array(get_huggingface_embeddings(sentence1))
@@ -53,8 +53,8 @@ namespace = "sample-doc"
 #     st.write(f"Cosine similarity between '{sentence1}' and '{sentence2}': {similarity:.4f}")
 
 # Streamlit UI
-st.title("PDF Vectorization, Retrieval, and Augmented Generation with RAG")
-st.write("Upload a PDF file to vectorize and store in Pinecone")
+st.title("Neura Search")
+# st.write("Upload a PDF file to vectorize and store in Pinecone")
 # Upload PDF
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 document_data = []
@@ -65,7 +65,7 @@ if uploaded_file is not None:
     with open(temp_file_path, "wb") as f:
         f.write(uploaded_file.getbuffer())    
     # Process the PDF
-    st.write("Processing the PDF and vectorizing it...")
+    st.write("Processing ...")
     loader = PyPDFLoader(temp_file_path)
     document_data = loader.load()
 
@@ -93,7 +93,7 @@ pincone_index = pc.Index(index_name)
 
 query = st.text_input("Enter a query to search and generate an augmented response:")
 
-if query and st.button("Query Pinecone"):
+if query and st.button("Search"):
 
     raw_query_embedding = get_huggingface_embeddings(query)
 
