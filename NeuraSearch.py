@@ -103,7 +103,6 @@ if query and st.button("Query Pinecone"):
         include_metadata=True,
         namespace=namespace
     )
-    st.write("Top Matches:", top_matches)
 
     # Extract contexts from the matches and handle cases where metadata is missing
     contexts = []
@@ -111,15 +110,9 @@ if query and st.button("Query Pinecone"):
         if "metadata" in items:
             context_text = items["metadata"].get("content", "No content available")
             contexts.append(context_text)
-        else:
-            st.write(f"Match ID {items['id']} does not have metadata.")
     
-    st.write("Contexts extracted:", contexts)
-
     if contexts:
         augmented_query = "«CONTEXT>|n" + "\n\n-------|n|n".join(contexts[:10]) + "\n-------|n</CONTEXT>\n\nMY QUESTION: " + query
-        st.write("Generated Augmented Query:")
-        st.write(augmented_query)
 
         # Perform the augmented generation with Groq API
         system_prompt = """You are an expert at understanding and analyzing company data - particularly shipping orders, purchase orders, invoices, and inventory reports. Answer any questions I have, based on the data provided. Always consider all of the context provided when forming a response."""
