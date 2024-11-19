@@ -15,7 +15,7 @@ import os
 load_dotenv()
 # Initialize embedding model, Pinecone and Groq
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-pc = Pinecone(api_key=st.secret['PINECONE'])
+pc = Pinecone(api_key=st.secrets['PINECONE'])
 groq_client = Groq(api_key=st.secrets['GROQ'])
 index_name = "ragvectorize-index"
 namespace = "sample-doc"
