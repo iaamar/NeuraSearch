@@ -10,12 +10,13 @@ from pinecone import Pinecone
 from groq import Groq
 import pinecone
 import numpy as np
+from dotenv import load_dotenv
 import os
-
+load_dotenv()
 # Initialize embedding model, Pinecone and Groq
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
-groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+pc = Pinecone(api_key=os.environ['PINECONE_API_KEY'])
+groq_client = Groq(api_key=os.environ['GROQ_API_KEY'])
 index_name = "ragvectorize-index"
 namespace = "sample-doc"
 
