@@ -15,8 +15,8 @@ import os
 load_dotenv()
 # Initialize embedding model, Pinecone and Groq
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-pc = Pinecone(api_key=st.secrets['pinecone'])
-groq_client = Groq(api_key=st.secrets['groq'])
+pc = Pinecone(api_key="pcsk_5gNdsS_G8QhPMgakYnsW2Q9RaUzXjBw3sc7ddqar7XXEmax3JZpXcQuGHV2fxawvBUaeYq")
+groq_client = Groq(api_key="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")
 index_name = "ragvectorize-index"
 namespace = "sample-doc"
 
@@ -85,7 +85,7 @@ vectorstore_from_documents = PineconeVectorStore.from_documents(
     embeddings,
     index_name=index_name,
     namespace=namespace,
-    pinecone_api_key=st.secrets["pinecone"]
+    pinecone_api_key="pcsk_5gNdsS_G8QhPMgakYnsW2Q9RaUzXjBw3sc7ddqar7XXEmax3JZpXcQuGHV2fxawvBUaeYq"
 )
 
 # Initialize the Pinecone index
