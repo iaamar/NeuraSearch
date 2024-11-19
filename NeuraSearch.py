@@ -84,7 +84,8 @@ vectorstore_from_documents = PineconeVectorStore.from_documents(
     document_objects,
     embeddings,
     index_name=index_name,
-    namespace=namespace
+    namespace=namespace,
+    pinecone_api_key=st.secrets["pinecone"]
 )
 
 # Initialize the Pinecone index
