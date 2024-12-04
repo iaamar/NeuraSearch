@@ -148,7 +148,7 @@ load_dotenv()
 st.title("Neura Search")
 
 # Retrieve API keys from secrets or environment variables
-pinecone_api_key = st.secrets.get("PINECONE")
+pinecone_api_key = "pcsk_3YhMo9_7ekUthziQGgCRSRmfunDteJTpgZJ65pGkjCe3PmCRPkGR3pagY5o5ujqjvPXMrC"
 groq_api_key = st.secrets.get("GROQ")
 
 index_name = "ragvectorize-index"
